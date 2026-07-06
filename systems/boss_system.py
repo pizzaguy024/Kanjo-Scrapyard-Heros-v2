@@ -1,6 +1,7 @@
 import random
 from database import connect
 from systems.energy_system import spend_energy
+from systems.world_event_system import get_today_world_event
 
 
 BOSSES = [
@@ -86,6 +87,8 @@ You need at least 100 reputation to challenge your first boss.
 Boss races cost 2 energy.
 """
 
+    event = get_today_world_event()
+
     db = connect()
     cur = db.cursor()
 
@@ -101,10 +104,12 @@ Boss races cost 2 energy.
 
     horsepower, handling, grip, reliability, condition, oil, tires, engine_wear = car
 
+    adjusted_grip = grip + event["grip_modifier"]
+
     player_score = (
         horsepower
         + handling
-        + grip
+        + adjusted_grip
         + reliability
         + random.randint(-60, 60)
         - (100 - condition)
@@ -115,10 +120,12 @@ Boss races cost 2 energy.
 
     boss_score = boss["rating"] + random.randint(-40, 40)
 
-    tire_loss = random.randint(6, 12)
-    oil_loss = random.randint(5, 10)
-    engine_damage = random.randint(3, 8)
-    condition_loss = random.randint(5, 12)
+    wear_bonus = event["wear_modifier"]
+
+    tire_loss = random.randint(6, 12) + wear_bonus
+    oil_loss = random.randint(5, 10) + wear_bonus
+    engine_damage = random.randint(3, 8) + wear_bonus
+    condition_loss = random.randint(5, 12) + wear_bonus
 
     cur.execute("""
         UPDATE cars
@@ -130,19 +137,26 @@ Boss races cost 2 energy.
     """, (tire_loss, oil_loss, engine_damage, condition_loss, username))
 
     if player_score >= boss_score:
+        event_bonus = int(boss["payout"] * (event["payout_modifier"] / 100))
+        payout = boss["payout"] + event_bonus
+        rep_reward = boss["rep_reward"] + event["rep_modifier"]
+
         cur.execute("""
             UPDATE players
             SET money = money + ?,
                 reputation = reputation + ?
             WHERE username = ?
         """, (
-            boss["payout"],
-            boss["rep_reward"],
+            payout,
+            rep_reward,
             username,
         ))
 
         result = f"""
 🏆 Boss Race Victory
+
+World Event:
+{event['name']}
 
 Boss:
 {boss['name']} - {boss['title']}
@@ -152,9 +166,10 @@ Boss Car:
 
 You beat the boss.
 
-Rewards:
-Money: +${boss['payout']}
-Reputation: +{boss['rep_reward']}
+Base Money: ${boss['payout']}
+World Event Bonus: +${event_bonus}
+Total Money: ${payout}
+Reputation: +{rep_reward}
 
 Energy:
 -2
@@ -166,7 +181,7 @@ Engine Wear +{engine_damage}%
 Condition -{condition_loss}%
 """
     else:
-        rep_gain = random.randint(10, 25)
+        rep_gain = random.randint(10, 25) + event["rep_modifier"]
 
         cur.execute("""
             UPDATE players
@@ -177,6 +192,9 @@ Condition -{condition_loss}%
         result = f"""
 🏆 Boss Race Failed
 
+World Event:
+{event['name']}
+
 Boss:
 {boss['name']} - {boss['title']}
 
@@ -185,7 +203,6 @@ Boss Car:
 
 You lost, but the streets noticed.
 
-Rewards:
 Reputation: +{rep_gain}
 
 Energy:
