@@ -2,6 +2,7 @@ from database import init_db
 from systems.player_system import create_player, profile
 from systems.garage_system import garage, repair_car, upgrade_car, upgrade_garage
 from systems.race_system import race_ai
+from systems.daily_system import claim_daily_reward
 
 
 def menu():
@@ -13,7 +14,8 @@ def menu():
     print("5. Repair Car")
     print("6. Upgrade Car")
     print("7. Upgrade Garage")
-    print("8. Quit")
+    print("8. Daily Login Reward")
+    print("9. Quit")
 
 
 def main():
@@ -40,6 +42,8 @@ def main():
         elif choice == "7":
             print(upgrade_garage(username))
         elif choice == "8":
+            print(claim_daily_reward(username))
+        elif choice == "9":
             print("Later, street runner.")
             break
         else:
