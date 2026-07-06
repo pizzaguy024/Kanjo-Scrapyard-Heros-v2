@@ -45,5 +45,18 @@ def init_db():
     )
     """)
 
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS world_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_date TEXT UNIQUE,
+        name TEXT,
+        description TEXT,
+        grip_modifier INTEGER,
+        payout_modifier INTEGER,
+        rep_modifier INTEGER,
+        wear_modifier INTEGER
+    )
+    """)
+
     db.commit()
     db.close()
