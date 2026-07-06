@@ -4,6 +4,7 @@ from systems.garage_system import garage, repair_car, upgrade_car, upgrade_garag
 from systems.race_system import race_ai
 from systems.daily_system import claim_daily_reward
 from systems.boss_system import boss_race
+from systems.world_event_system import view_world_event
 from systems.dealer_system import (
     view_dealer,
     buy_dealer_car,
@@ -27,7 +28,8 @@ def menu():
     print("11. Buy Dealer Car")
     print("12. View Owned Cars")
     print("13. Switch Active Car")
-    print("14. Quit")
+    print("14. View Daily World Event")
+    print("15. Quit")
 
 
 def main():
@@ -86,6 +88,9 @@ def main():
             print(switch_active_car(username, car_id))
 
         elif choice == "14":
+            print(view_world_event())
+
+        elif choice == "15":
             print("Later, street runner.")
             break
 
