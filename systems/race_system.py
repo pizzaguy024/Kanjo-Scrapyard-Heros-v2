@@ -1,6 +1,7 @@
 import random
 from database import connect
 from systems.energy_system import spend_energy
+from systems.world_event_system import get_today_world_event
 
 AI_RACERS = [
     {"name": "Kaito", "car": "Civic EG", "rating": 230},
@@ -19,6 +20,8 @@ def race_ai(username):
 
 {message}
 """
+
+    event = get_today_world_event()
 
     db = connect()
     cur = db.cursor()
@@ -44,10 +47,12 @@ def race_ai(username):
 
     horsepower, handling, grip, reliability, condition, oil, tires, engine_wear = car
 
+    adjusted_grip = grip + event["grip_modifier"]
+
     player_score = (
         horsepower
         + handling
-        + grip
+        + adjusted_grip
         + reliability
         + random.randint(-40, 40)
         - (100 - condition)
@@ -58,10 +63,12 @@ def race_ai(username):
 
     ai_score = ai["rating"] + random.randint(-35, 35)
 
-    tire_loss = random.randint(3, 8)
-    oil_loss = random.randint(2, 6)
-    engine_damage = random.randint(1, 4)
-    condition_loss = random.randint(2, 6)
+    wear_bonus = event["wear_modifier"]
+
+    tire_loss = random.randint(3, 8) + wear_bonus
+    oil_loss = random.randint(2, 6) + wear_bonus
+    engine_damage = random.randint(1, 4) + wear_bonus
+    condition_loss = random.randint(2, 6) + wear_bonus
 
     cur.execute("""
         UPDATE cars
@@ -75,8 +82,10 @@ def race_ai(username):
     if player_score >= ai_score:
         base_payout = random.randint(700, 1600)
         garage_bonus = int(base_payout * ((garage_level - 1) * 0.03))
-        payout = base_payout + garage_bonus
-        rep_gain = random.randint(8, 22)
+        event_bonus = int(base_payout * (event["payout_modifier"] / 100))
+        payout = base_payout + garage_bonus + event_bonus
+
+        rep_gain = random.randint(8, 22) + event["rep_modifier"]
 
         cur.execute("""
             UPDATE players
@@ -88,6 +97,9 @@ def race_ai(username):
         result = f"""
 🏁 AI Race Result
 
+World Event:
+{event['name']}
+
 Opponent: {ai['name']}
 Opponent Car: {ai['car']}
 
@@ -95,9 +107,10 @@ You won.
 
 Base Payout: ${base_payout}
 Garage Bonus: +${garage_bonus}
+World Event Bonus: +${event_bonus}
 Total: ${payout}
-Reputation: +{rep_gain}
 
+Reputation: +{rep_gain}
 Energy: -1
 
 Wear:
@@ -107,7 +120,7 @@ Engine Wear +{engine_damage}%
 Condition -{condition_loss}%
 """
     else:
-        rep_gain = random.randint(2, 6)
+        rep_gain = random.randint(2, 6) + event["rep_modifier"]
 
         cur.execute("""
             UPDATE players
@@ -117,6 +130,9 @@ Condition -{condition_loss}%
 
         result = f"""
 🏁 AI Race Result
+
+World Event:
+{event['name']}
 
 Opponent: {ai['name']}
 Opponent Car: {ai['car']}
