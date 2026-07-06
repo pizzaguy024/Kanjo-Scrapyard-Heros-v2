@@ -4,6 +4,12 @@ from systems.garage_system import garage, repair_car, upgrade_car, upgrade_garag
 from systems.race_system import race_ai
 from systems.daily_system import claim_daily_reward
 from systems.boss_system import boss_race
+from systems.dealer_system import (
+    view_dealer,
+    buy_dealer_car,
+    view_owned_cars,
+    switch_active_car,
+)
 
 
 def menu():
@@ -17,13 +23,18 @@ def menu():
     print("7. Upgrade Garage")
     print("8. Daily Login Reward")
     print("9. Boss Race")
-    print("10. Quit")
+    print("10. View Scrap Yard Dealer")
+    print("11. Buy Dealer Car")
+    print("12. View Owned Cars")
+    print("13. Switch Active Car")
+    print("14. Quit")
 
 
 def main():
     init_db()
 
     username = input("Enter your player name: ").strip()
+    current_dealer_cars = []
 
     while True:
         menu()
@@ -31,25 +42,53 @@ def main():
 
         if choice == "1":
             print(create_player(username))
+
         elif choice == "2":
             print(profile(username))
+
         elif choice == "3":
             print(garage(username))
+
         elif choice == "4":
             print(race_ai(username))
+
         elif choice == "5":
             print(repair_car(username))
+
         elif choice == "6":
             print(upgrade_car(username))
+
         elif choice == "7":
             print(upgrade_garage(username))
+
         elif choice == "8":
             print(claim_daily_reward(username))
+
         elif choice == "9":
             print(boss_race(username))
+
         elif choice == "10":
+            dealer_text, current_dealer_cars = view_dealer()
+            print(dealer_text)
+
+        elif choice == "11":
+            if not current_dealer_cars:
+                print("View the Scrap Yard Dealer first.")
+            else:
+                car_choice = input("Which dealer car do you want to buy? 1, 2, or 3: ").strip()
+                print(buy_dealer_car(username, current_dealer_cars, car_choice))
+
+        elif choice == "12":
+            print(view_owned_cars(username))
+
+        elif choice == "13":
+            car_id = input("Enter the car ID you want to drive: ").strip()
+            print(switch_active_car(username, car_id))
+
+        elif choice == "14":
             print("Later, street runner.")
             break
+
         else:
             print("Invalid choice.")
 
