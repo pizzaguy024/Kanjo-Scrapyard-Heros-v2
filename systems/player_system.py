@@ -4,6 +4,7 @@ from config import STARTING_MONEY, STARTING_REP, STARTING_GARAGE_LEVEL, STARTING
 from data.cars import get_random_starter_car
 from systems.energy_system import reset_energy_if_needed
 from systems.rank_system import format_rank_progress
+from systems.achievement_system import unlock_achievement, check_progress_achievements
 
 
 def create_player(username):
@@ -67,6 +68,8 @@ def create_player(username):
     db.commit()
     db.close()
 
+    achievement_text = unlock_achievement(username, "first_steps")
+
     return f"""
 🏚️ Welcome to the Scrap Yard.
 
@@ -80,6 +83,7 @@ Rank: Scrap Rookie
 Energy: {STARTING_ENERGY}/{STARTING_ENERGY}
 
 Every legend starts as scrap.
+{achievement_text}
 """
 
 
@@ -109,6 +113,7 @@ def profile(username):
 
     money, rep, garage_level, energy, max_energy, streak = player
     rank_text = format_rank_progress(rep)
+    achievement_text = check_progress_achievements(username)
 
     return f"""
 👤 Driver: {username}
@@ -128,4 +133,5 @@ Handling: {car[3]}
 Grip: {car[4]}
 Reliability: {car[5]}
 Condition: {car[6]}%
+{achievement_text}
 """
