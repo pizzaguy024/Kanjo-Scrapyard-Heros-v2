@@ -47,14 +47,10 @@ def race_ai(username):
     ai = random.choice(AI_RACERS)
 
     horsepower, handling, grip, reliability, condition, oil, tires, engine_wear = car
-
     adjusted_grip = grip + event["grip_modifier"]
 
     player_score = (
-        horsepower
-        + handling
-        + adjusted_grip
-        + reliability
+        horsepower + handling + adjusted_grip + reliability
         + random.randint(-40, 40)
         - (100 - condition)
         - (100 - oil)
@@ -63,7 +59,6 @@ def race_ai(username):
     )
 
     ai_score = ai["rating"] + random.randint(-35, 35)
-
     wear_bonus = event["wear_modifier"]
 
     tire_loss = random.randint(3, 8) + wear_bonus
@@ -85,15 +80,18 @@ def race_ai(username):
         garage_bonus = int(base_payout * ((garage_level - 1) * 0.03))
         event_bonus = int(base_payout * (event["payout_modifier"] / 100))
         payout = base_payout + garage_bonus + event_bonus
-
         rep_gain = random.randint(8, 22) + event["rep_modifier"]
 
         cur.execute("""
             UPDATE players
             SET money = money + ?,
-                reputation = reputation + ?
+                reputation = reputation + ?,
+                races_entered = races_entered + 1,
+                races_won = races_won + 1,
+                total_earnings = total_earnings + ?,
+                total_rep_earned = total_rep_earned + ?
             WHERE username = ?
-        """, (payout, rep_gain, username))
+        """, (payout, rep_gain, payout, rep_gain, username))
 
         result = f"""
 🏁 AI Race Result
@@ -125,9 +123,12 @@ Condition -{condition_loss}%
 
         cur.execute("""
             UPDATE players
-            SET reputation = reputation + ?
+            SET reputation = reputation + ?,
+                races_entered = races_entered + 1,
+                races_lost = races_lost + 1,
+                total_rep_earned = total_rep_earned + ?
             WHERE username = ?
-        """, (rep_gain, username))
+        """, (rep_gain, rep_gain, username))
 
         result = f"""
 🏁 AI Race Result
