@@ -7,6 +7,13 @@ from systems.boss_system import boss_race
 from systems.world_event_system import view_world_event
 from systems.rank_system import format_rank_progress
 from systems.achievement_system import view_achievements
+from systems.leaderboard_system import (
+    leaderboard_menu,
+    reputation_leaderboard,
+    money_leaderboard,
+    garage_leaderboard,
+    car_power_leaderboard,
+)
 from database import connect
 from systems.dealer_system import (
     view_dealer,
@@ -34,7 +41,8 @@ def menu():
     print("14. View Daily World Event")
     print("15. View Rank")
     print("16. View Achievements")
-    print("17. Quit")
+    print("17. View Leaderboards")
+    print("18. Quit")
 
 
 def view_rank(username):
@@ -53,6 +61,22 @@ def view_rank(username):
         return "No player found."
 
     return format_rank_progress(player[0])
+
+
+def choose_leaderboard():
+    print(leaderboard_menu())
+    choice = input("Choose leaderboard: ").strip()
+
+    if choice == "1":
+        return reputation_leaderboard()
+    elif choice == "2":
+        return money_leaderboard()
+    elif choice == "3":
+        return garage_leaderboard()
+    elif choice == "4":
+        return car_power_leaderboard()
+    else:
+        return "Invalid leaderboard choice."
 
 
 def main():
@@ -104,6 +128,8 @@ def main():
         elif choice == "16":
             print(view_achievements(username))
         elif choice == "17":
+            print(choose_leaderboard())
+        elif choice == "18":
             print("Later, street runner.")
             break
         else:
