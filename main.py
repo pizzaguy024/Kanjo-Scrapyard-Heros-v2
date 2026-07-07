@@ -5,6 +5,8 @@ from systems.race_system import race_ai
 from systems.daily_system import claim_daily_reward
 from systems.boss_system import boss_race
 from systems.world_event_system import view_world_event
+from systems.rank_system import format_rank_progress
+from database import connect
 from systems.dealer_system import (
     view_dealer,
     buy_dealer_car,
@@ -29,7 +31,26 @@ def menu():
     print("12. View Owned Cars")
     print("13. Switch Active Car")
     print("14. View Daily World Event")
-    print("15. Quit")
+    print("15. View Rank")
+    print("16. Quit")
+
+
+def view_rank(username):
+    db = connect()
+    cur = db.cursor()
+
+    player = cur.execute("""
+        SELECT reputation
+        FROM players
+        WHERE username = ?
+    """, (username,)).fetchone()
+
+    db.close()
+
+    if not player:
+        return "No player found."
+
+    return format_rank_progress(player[0])
 
 
 def main():
@@ -91,6 +112,9 @@ def main():
             print(view_world_event())
 
         elif choice == "15":
+            print(view_rank(username))
+
+        elif choice == "16":
             print("Later, street runner.")
             break
 
