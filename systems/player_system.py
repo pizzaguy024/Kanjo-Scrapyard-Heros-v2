@@ -3,6 +3,7 @@ from database import connect
 from config import STARTING_MONEY, STARTING_REP, STARTING_GARAGE_LEVEL, STARTING_ENERGY
 from data.cars import get_random_starter_car
 from systems.energy_system import reset_energy_if_needed
+from systems.rank_system import format_rank_progress
 
 
 def create_player(username):
@@ -75,6 +76,7 @@ Rarity: {car['rarity']}
 
 Money: ${STARTING_MONEY}
 Reputation: {STARTING_REP}
+Rank: Scrap Rookie
 Energy: {STARTING_ENERGY}/{STARTING_ENERGY}
 
 Every legend starts as scrap.
@@ -106,12 +108,14 @@ def profile(username):
     db.close()
 
     money, rep, garage_level, energy, max_energy, streak = player
+    rank_text = format_rank_progress(rep)
 
     return f"""
 👤 Driver: {username}
 
 Money: ${money}
 Reputation: {rep}
+{rank_text}
 Garage Level: {garage_level}
 Energy: {energy}/{max_energy}
 Login Streak: {streak}
