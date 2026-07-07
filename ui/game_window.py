@@ -196,10 +196,28 @@ class KanjoWindow:
         tagline = self.small_font.render("Every legend starts as scrap.", True, RED)
         self.screen.blit(tagline, (WIDTH // 2 - tagline.get_width() // 2, 485))
 
-    def draw_username_screen(self):
+    def draw_save_menu(self):
         self.draw_panel()
 
-        title = self.title_font.render("CREATE DRIVER", True, RED)
+        title = self.title_font.render("DRIVER SELECT", True, RED)
+        self.screen.blit(title, (200, 105))
+
+        text = """
+1. New Driver
+2. Load Driver
+3. View Drivers
+4. Delete Driver
+5. Quit
+
+Choose an option.
+"""
+        self.draw_wrapped_text(text, 200, 180, 880, 32, self.font, max_y=520)
+        self.draw_input_box("Choice", 585)
+
+    def draw_new_driver_screen(self):
+        self.draw_panel()
+
+        title = self.title_font.render("NEW DRIVER", True, RED)
         self.screen.blit(title, (200, 105))
 
         intro = """
@@ -207,10 +225,49 @@ The gates are locked.
 The yard is quiet.
 Only the rain, rust, and old metal are keeping you company.
 
-Enter your driver name.
+Enter a new driver name.
 """
         self.draw_wrapped_text(intro, 200, 175, 880, 30, self.font, max_y=520)
         self.draw_input_box("Driver Name", 585)
+
+    def draw_load_driver_screen(self):
+        self.draw_panel()
+
+        title = self.title_font.render("LOAD DRIVER", True, RED)
+        self.screen.blit(title, (200, 105))
+
+        drivers = self.get_driver_list_text()
+
+        text = f"""
+Existing Drivers:
+
+{drivers}
+
+Type the exact driver name to load.
+"""
+        self.draw_wrapped_text(text, 200, 165, 880, 27, self.small_font, max_y=540)
+        self.draw_input_box("Driver Name", 585)
+
+    def draw_delete_driver_screen(self):
+        self.draw_panel()
+
+        title = self.title_font.render("DELETE DRIVER", True, RED)
+        self.screen.blit(title, (200, 105))
+
+        drivers = self.get_driver_list_text()
+
+        text = f"""
+Existing Drivers:
+
+{drivers}
+
+Type the exact driver name to DELETE.
+
+Warning:
+This permanently deletes the player, cars, and achievements.
+"""
+        self.draw_wrapped_text(text, 200, 155, 880, 25, self.small_font, max_y=540)
+        self.draw_input_box("Delete Name", 585)
 
     def draw_story_screen(self):
         self.draw_panel()
@@ -278,7 +335,7 @@ Enter your driver name.
             max_y=600,
         )
 
-        hint = self.small_font.render("Press ENTER to return to menu. Press ESC anytime to return.", True, RED)
+        hint = self.small_font.render("Press ENTER to return. Press ESC for driver select.", True, RED)
         self.screen.blit(hint, (200, 635))
 
     def player_exists(self, username):
@@ -290,6 +347,51 @@ Enter your driver name.
         ).fetchone()
         db.close()
         return player is not None
+
+    def get_driver_names(self):
+        db = connect()
+        cur = db.cursor()
+
+        drivers = cur.execute("""
+            SELECT username
+            FROM players
+            ORDER BY username COLLATE NOCASE
+        """).fetchall()
+
+        db.close()
+        return [driver[0] for driver in drivers]
+
+    def get_driver_list_text(self):
+        drivers = self.get_driver_names()
+
+        if not drivers:
+            return "No drivers found."
+
+        lines = []
+        for index, driver in enumerate(drivers, start=1):
+            lines.append(f"{index}. {driver}")
+
+        return "\n".join(lines)
+
+    def delete_driver(self, username):
+        if not self.player_exists(username):
+            return "No driver found with that name."
+
+        db = connect()
+        cur = db.cursor()
+
+        cur.execute("DELETE FROM cars WHERE owner = ?", (username,))
+        cur.execute("DELETE FROM achievements WHERE username = ?", (username,))
+        cur.execute("DELETE FROM players WHERE username = ?", (username,))
+
+        db.commit()
+        db.close()
+
+        return f"""
+Driver Deleted
+
+{username} has been removed from the scrapyard.
+"""
 
     def get_active_car_name(self, username):
         db = connect()
@@ -392,28 +494,86 @@ Tonight, the journey continues.
         if choice == "19":
             return car_power_leaderboard()
         if choice == "20":
-            pygame.quit()
-            sys.exit()
+            self.mode = "save_menu"
+            return "Returning to driver select."
 
         return "Invalid choice."
 
     def handle_enter(self):
         if self.mode == "title":
-            self.mode = "username"
+            self.mode = "save_menu"
+            self.input_text = ""
             return
 
-        if self.mode == "username":
-            if self.input_text.strip():
-                self.username = self.input_text.strip()
+        if self.mode == "save_menu":
+            choice = self.input_text.strip()
+            self.input_text = ""
 
-                already_exists = self.player_exists(self.username)
+            if choice == "1":
+                self.mode = "new_driver"
+            elif choice == "2":
+                self.mode = "load_driver"
+            elif choice == "3":
+                self.output_text = f"""
+Saved Drivers:
 
-                if not already_exists:
-                    create_player(self.username)
+{self.get_driver_list_text()}
+"""
+                self.mode = "output"
+            elif choice == "4":
+                self.mode = "delete_driver"
+            elif choice == "5":
+                pygame.quit()
+                sys.exit()
+            else:
+                self.output_text = "Invalid choice."
+                self.mode = "output"
+            return
 
-                starter_car = self.get_active_car_name(self.username)
-                self.input_text = ""
-                self.start_story(self.username, starter_car, is_new_player=not already_exists)
+        if self.mode == "new_driver":
+            name = self.input_text.strip()
+            self.input_text = ""
+
+            if not name:
+                return
+
+            if self.player_exists(name):
+                self.output_text = "That driver already exists. Use Load Driver instead."
+                self.mode = "output"
+                return
+
+            self.username = name
+            create_player(self.username)
+            starter_car = self.get_active_car_name(self.username)
+            self.start_story(self.username, starter_car, is_new_player=True)
+            return
+
+        if self.mode == "load_driver":
+            name = self.input_text.strip()
+            self.input_text = ""
+
+            if not name:
+                return
+
+            if not self.player_exists(name):
+                self.output_text = "No driver found with that name."
+                self.mode = "output"
+                return
+
+            self.username = name
+            starter_car = self.get_active_car_name(self.username)
+            self.start_story(self.username, starter_car, is_new_player=False)
+            return
+
+        if self.mode == "delete_driver":
+            name = self.input_text.strip()
+            self.input_text = ""
+
+            if not name:
+                return
+
+            self.output_text = self.delete_driver(name)
+            self.mode = "output"
             return
 
         if self.mode == "story":
@@ -428,7 +588,7 @@ Tonight, the journey continues.
         if self.mode == "menu":
             result = self.run_menu_choice(self.input_text.strip())
 
-            if self.mode in ["buy_car", "switch_car"]:
+            if self.mode in ["buy_car", "switch_car", "save_menu"]:
                 self.output_text = result
             else:
                 self.output_text = result
@@ -458,7 +618,10 @@ Tonight, the journey continues.
 
         if self.mode == "output":
             self.input_text = ""
-            self.mode = "menu"
+            if self.username:
+                self.mode = "menu"
+            else:
+                self.mode = "save_menu"
             return
 
     def run(self):
@@ -482,19 +645,40 @@ Tonight, the journey continues.
                         self.input_text = self.input_text[:-1]
 
                     elif event.key == pygame.K_ESCAPE:
-                        if self.mode in ["story", "output", "buy_car", "switch_car"]:
-                            self.mode = "menu"
+                        if self.mode in ["menu", "story", "output", "buy_car", "switch_car"]:
+                            self.mode = "save_menu"
+                            self.input_text = ""
+                            self.username = ""
+
+                        elif self.mode in ["new_driver", "load_driver", "delete_driver"]:
+                            self.mode = "save_menu"
                             self.input_text = ""
 
                     else:
-                        if self.mode in ["username", "menu", "buy_car", "switch_car"]:
+                        typing_modes = [
+                            "save_menu",
+                            "new_driver",
+                            "load_driver",
+                            "delete_driver",
+                            "menu",
+                            "buy_car",
+                            "switch_car",
+                        ]
+
+                        if self.mode in typing_modes:
                             if len(self.input_text) < 40 and event.unicode:
                                 self.input_text += event.unicode
 
             if self.mode == "title":
                 self.draw_title_screen()
-            elif self.mode == "username":
-                self.draw_username_screen()
+            elif self.mode == "save_menu":
+                self.draw_save_menu()
+            elif self.mode == "new_driver":
+                self.draw_new_driver_screen()
+            elif self.mode == "load_driver":
+                self.draw_load_driver_screen()
+            elif self.mode == "delete_driver":
+                self.draw_delete_driver_screen()
             elif self.mode == "story":
                 self.draw_story_screen()
             elif self.mode == "menu":
