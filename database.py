@@ -22,7 +22,15 @@ def init_db():
         max_energy INTEGER NOT NULL,
         last_energy_reset TEXT,
         last_daily_reward TEXT,
-        login_streak INTEGER DEFAULT 0
+        login_streak INTEGER DEFAULT 0,
+        races_entered INTEGER DEFAULT 0,
+        races_won INTEGER DEFAULT 0,
+        races_lost INTEGER DEFAULT 0,
+        boss_races_entered INTEGER DEFAULT 0,
+        boss_races_won INTEGER DEFAULT 0,
+        boss_races_lost INTEGER DEFAULT 0,
+        total_earnings INTEGER DEFAULT 0,
+        total_rep_earned INTEGER DEFAULT 0
     )
     """)
 
@@ -67,6 +75,21 @@ def init_db():
         UNIQUE(username, achievement_key)
     )
     """)
+
+    for column, column_type in [
+        ("races_entered", "INTEGER DEFAULT 0"),
+        ("races_won", "INTEGER DEFAULT 0"),
+        ("races_lost", "INTEGER DEFAULT 0"),
+        ("boss_races_entered", "INTEGER DEFAULT 0"),
+        ("boss_races_won", "INTEGER DEFAULT 0"),
+        ("boss_races_lost", "INTEGER DEFAULT 0"),
+        ("total_earnings", "INTEGER DEFAULT 0"),
+        ("total_rep_earned", "INTEGER DEFAULT 0"),
+    ]:
+        try:
+            cur.execute(f"ALTER TABLE players ADD COLUMN {column} {column_type}")
+        except sqlite3.OperationalError:
+            pass
 
     db.commit()
     db.close()
