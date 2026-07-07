@@ -58,5 +58,15 @@ def init_db():
     )
     """)
 
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS achievements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        achievement_key TEXT NOT NULL,
+        unlocked_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(username, achievement_key)
+    )
+    """)
+
     db.commit()
     db.close()
