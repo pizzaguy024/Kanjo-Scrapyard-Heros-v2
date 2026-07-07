@@ -1,4 +1,4 @@
-from database import init_db
+from database import init_db, connect
 from systems.player_system import create_player, profile
 from systems.garage_system import garage, repair_car, upgrade_car, upgrade_garage
 from systems.race_system import race_ai
@@ -14,7 +14,7 @@ from systems.leaderboard_system import (
     garage_leaderboard,
     car_power_leaderboard,
 )
-from database import connect
+from systems.stats_system import view_stats
 from systems.dealer_system import (
     view_dealer,
     buy_dealer_car,
@@ -42,7 +42,8 @@ def menu():
     print("15. View Rank")
     print("16. View Achievements")
     print("17. View Leaderboards")
-    print("18. Quit")
+    print("18. View Stats")
+    print("19. Quit")
 
 
 def view_rank(username):
@@ -130,6 +131,8 @@ def main():
         elif choice == "17":
             print(choose_leaderboard())
         elif choice == "18":
+            print(view_stats(username))
+        elif choice == "19":
             print("Later, street runner.")
             break
         else:
