@@ -1,5 +1,6 @@
 import pygame
 import sys
+import os
 
 from database import init_db
 from systems.player_system import create_player, profile
@@ -29,8 +30,6 @@ HEIGHT = 720
 
 WHITE = (235, 235, 235)
 RED = (220, 40, 50)
-BLACK = (0, 0, 0)
-DARK_RED = (90, 10, 20)
 BOX_BG = (0, 0, 0, 200)
 INPUT_BG = (15, 15, 20, 230)
 BOX_BORDER = (230, 230, 230)
@@ -68,6 +67,12 @@ class KanjoWindow:
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Kanjo: Scrap Yard Heroes V2")
 
+        try:
+            icon = pygame.image.load(self.resource_path("assets/icon.png"))
+            pygame.display.set_icon(icon)
+        except Exception:
+            pass
+
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("consolas", 24)
         self.small_font = pygame.font.SysFont("consolas", 19)
@@ -85,9 +90,17 @@ class KanjoWindow:
 
         self.background = self.load_background()
 
+    def resource_path(self, relative_path):
+        try:
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+
+        return os.path.join(base_path, relative_path)
+
     def load_background(self):
         try:
-            image = pygame.image.load("assets/background.png").convert()
+            image = pygame.image.load(self.resource_path("assets/background.png")).convert()
             return pygame.transform.scale(image, (WIDTH, HEIGHT))
         except Exception:
             surface = pygame.Surface((WIDTH, HEIGHT))
