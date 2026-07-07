@@ -6,6 +6,7 @@ from systems.daily_system import claim_daily_reward
 from systems.boss_system import boss_race
 from systems.world_event_system import view_world_event
 from systems.rank_system import format_rank_progress
+from systems.achievement_system import view_achievements
 from database import connect
 from systems.dealer_system import (
     view_dealer,
@@ -32,7 +33,8 @@ def menu():
     print("13. Switch Active Car")
     print("14. View Daily World Event")
     print("15. View Rank")
-    print("16. Quit")
+    print("16. View Achievements")
+    print("17. Quit")
 
 
 def view_rank(username):
@@ -65,59 +67,45 @@ def main():
 
         if choice == "1":
             print(create_player(username))
-
         elif choice == "2":
             print(profile(username))
-
         elif choice == "3":
             print(garage(username))
-
         elif choice == "4":
             print(race_ai(username))
-
         elif choice == "5":
             print(repair_car(username))
-
         elif choice == "6":
             print(upgrade_car(username))
-
         elif choice == "7":
             print(upgrade_garage(username))
-
         elif choice == "8":
             print(claim_daily_reward(username))
-
         elif choice == "9":
             print(boss_race(username))
-
         elif choice == "10":
             dealer_text, current_dealer_cars = view_dealer()
             print(dealer_text)
-
         elif choice == "11":
             if not current_dealer_cars:
                 print("View the Scrap Yard Dealer first.")
             else:
                 car_choice = input("Which dealer car do you want to buy? 1, 2, or 3: ").strip()
                 print(buy_dealer_car(username, current_dealer_cars, car_choice))
-
         elif choice == "12":
             print(view_owned_cars(username))
-
         elif choice == "13":
             car_id = input("Enter the car ID you want to drive: ").strip()
             print(switch_active_car(username, car_id))
-
         elif choice == "14":
             print(view_world_event())
-
         elif choice == "15":
             print(view_rank(username))
-
         elif choice == "16":
+            print(view_achievements(username))
+        elif choice == "17":
             print("Later, street runner.")
             break
-
         else:
             print("Invalid choice.")
 
