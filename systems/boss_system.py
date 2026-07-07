@@ -2,6 +2,7 @@ import random
 from database import connect
 from systems.energy_system import spend_energy
 from systems.world_event_system import get_today_world_event
+from systems.achievement_system import unlock_achievement, check_progress_achievements
 
 
 BOSSES = [
@@ -180,6 +181,9 @@ Oil -{oil_loss}%
 Engine Wear +{engine_damage}%
 Condition -{condition_loss}%
 """
+
+        result += unlock_achievement(username, "first_boss")
+
     else:
         rep_gain = random.randint(10, 25) + event["rep_modifier"]
 
@@ -217,5 +221,7 @@ Condition -{condition_loss}%
 
     db.commit()
     db.close()
+
+    result += check_progress_achievements(username)
 
     return result
