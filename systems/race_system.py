@@ -2,6 +2,7 @@ import random
 from database import connect
 from systems.energy_system import spend_energy
 from systems.world_event_system import get_today_world_event
+from systems.achievement_system import unlock_achievement, check_progress_achievements
 
 AI_RACERS = [
     {"name": "Kaito", "car": "Civic EG", "rating": 230},
@@ -151,5 +152,8 @@ Condition -{condition_loss}%
 
     db.commit()
     db.close()
+
+    result += unlock_achievement(username, "first_race")
+    result += check_progress_achievements(username)
 
     return result
