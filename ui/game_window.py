@@ -425,7 +425,31 @@ Driver Deleted
         return "a forgotten scrap yard machine"
 
     def start_story(self, username, starter_car, is_new_player=True):
-        if is_new_player:
+        if username.strip().upper() == "BUSTER" and is_new_player:
+            self.story_full_text = """
+Neon light buzzed overhead.
+
+BUSTER groaned, pushing himself off the damp alley asphalt. His head throbbed from a long night of underground clubbing after the races.
+
+He stumbled toward the street, his fingers wrapping around his keys.
+
+There she sat.
+
+Wedged safely by a dumpster was his 1995 Mitsubishi Eclipse.
+
+The lime-green paint practically glowed.
+
+No scratches. No dents.
+
+BUSTER smirked, sliding into the Sparco seat.
+
+He turned the key.
+
+The turbocharged engine roared to life, instantly clearing his head.
+
+He shifted into first and rolled out into the Kanjo morning.
+"""
+        elif is_new_player:
             self.story_full_text = f"""
 Late one night, {username} was working the final shift at the scrapyard.
 
