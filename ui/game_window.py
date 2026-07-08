@@ -23,6 +23,7 @@ from systems.dealer_system import (
     view_owned_cars,
     switch_active_car,
 )
+from ui.audio import AudioManager
 
 
 WIDTH = 1280
@@ -33,6 +34,16 @@ RED = (220, 40, 50)
 BOX_BG = (0, 0, 0, 200)
 INPUT_BG = (15, 15, 20, 230)
 BOX_BORDER = (230, 230, 230)
+
+MUSIC_CREDIT = """
+Music Credit
+
+"12am"
+by Paint The Skies
+
+Music from #Uppbeat (free for Creators!)
+https://uppbeat.io/t/paint-the-skies/12am
+"""
 
 MENU_OPTIONS = [
     "Profile",
@@ -54,6 +65,7 @@ MENU_OPTIONS = [
     "Money Leaderboard",
     "Garage Leaderboard",
     "Car Power Leaderboard",
+    "Credits",
     "Quit",
 ]
 
@@ -65,12 +77,6 @@ class KanjoWindow:
 
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Kanjo: Scrap Yard Heroes V2")
-
-        try:
-            icon = pygame.image.load(self.resource_path("assets/icon.png"))
-            pygame.display.set_icon(icon)
-        except Exception:
-            pass
 
         self.clock = pygame.time.Clock()
         self.font = pygame.font.SysFont("consolas", 24)
@@ -94,6 +100,15 @@ class KanjoWindow:
         self.cursor_visible = True
 
         self.background = self.load_background()
+
+        try:
+            icon = pygame.image.load(self.resource_path("assets/icon.png"))
+            pygame.display.set_icon(icon)
+        except Exception:
+            pass
+
+        self.audio = AudioManager(self.resource_path)
+        self.audio.play_music("assets/audio/title_theme.mp3")
 
     def resource_path(self, relative_path):
         try:
@@ -207,7 +222,8 @@ class KanjoWindow:
 2. Load Driver
 3. View Drivers
 4. Delete Driver
-5. Quit
+5. Credits
+6. Quit
 
 Choose an option.
 """
@@ -304,12 +320,12 @@ This permanently deletes the player, cars, and achievements.
         line_gap = 25
 
         for index, option in enumerate(MENU_OPTIONS, start=1):
-            if index <= 10:
+            if index <= 11:
                 x = left_x
                 y = start_y + ((index - 1) * line_gap)
             else:
                 x = right_x
-                y = start_y + ((index - 11) * line_gap)
+                y = start_y + ((index - 12) * line_gap)
 
             line = self.small_font.render(f"{index}. {option}", True, WHITE)
             self.screen.blit(line, (x, y))
@@ -494,6 +510,8 @@ Tonight, the journey continues.
         if choice == "19":
             return car_power_leaderboard()
         if choice == "20":
+            return MUSIC_CREDIT
+        if choice == "21":
             self.mode = "save_menu"
             return "Returning to driver select."
 
@@ -523,6 +541,9 @@ Saved Drivers:
             elif choice == "4":
                 self.mode = "delete_driver"
             elif choice == "5":
+                self.output_text = MUSIC_CREDIT
+                self.mode = "output"
+            elif choice == "6":
                 pygame.quit()
                 sys.exit()
             else:
